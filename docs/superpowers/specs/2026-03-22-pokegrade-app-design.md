@@ -17,7 +17,7 @@ React Native (Expo)
   └── Firebase Cloud Functions (orchestrator)
         ├── Google Gemini API (free tier) — card image analysis & grading
         ├── Pokemon TCG API (free) — card identification & metadata
-        └── TCGPlayer scraping + Firestore cache — pricing data
+        └── Pokemon TCG API (built-in prices) + Firestore cache — pricing data
 ```
 
 **Key infrastructure:**
