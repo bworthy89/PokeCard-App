@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 
-const db = admin.firestore();
+const getDb = () => admin.firestore();
 const TCG_API_BASE = 'https://api.pokemontcg.io/v2';
 
 interface TcgCardData {
@@ -25,6 +25,7 @@ export interface CardLookupResult {
 }
 
 const getCachedPrice = async (pokemonTcgId: string) => {
+  const db = getDb();
   const doc = await db.collection('priceCache').doc(pokemonTcgId).get();
   if (!doc.exists) return null;
   const data = doc.data();
@@ -39,10 +40,26 @@ const cachePrice = async (
   pokemonTcgId: string,
   prices: { low: number | null; mid: number | null; high: number | null; market: number | null }
 ) => {
+  const db = getDb();
   await db.collection('priceCache').doc(pokemonTcgId).set({
     prices,
     fetchedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
+};
+
+const tcgFetch = async (query: string): Promise<TcgCardData[]> => {
+  const url = new URL(`${TCG_API_BASE}/cards`);
+  url.searchParams.set('q', query);
+  url.searchParams.set('pageSize', '1');
+  console.log(`TCG fetch: ${url.toString()}`);
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    console.error(`TCG API error: ${response.status} ${response.statusText}`);
+    return [];
+  }
+  const json = (await response.json()) as { data?: TcgCardData[] };
+  return json.data ?? [];
 };
 
 export const lookupCard = async (
@@ -51,19 +68,29 @@ export const lookupCard = async (
   setNumber: string
 ): Promise<CardLookupResult> => {
   try {
-    const query = encodeURIComponent(`name:"${cardName}" set.name:"${setName}" number:"${setNumber}"`);
-    const response = await fetch(`${TCG_API_BASE}/cards?q=${query}&pageSize=1`);
-    const data = (await response.json()) as { data: TcgCardData[] };
+    console.log(`TCG lookup: name="${cardName}" set="${setName}" number="${setNumber}"`);
 
-    if (!data.data || data.data.length === 0) {
-      const broadQuery = encodeURIComponent(`name:"${cardName}" set.name:"${setName}"`);
-      const broadResponse = await fetch(`${TCG_API_BASE}/cards?q=${broadQuery}&pageSize=1`);
-      const broadData = (await broadResponse.json()) as { data: TcgCardData[] };
-      if (!broadData.data || broadData.data.length === 0) {
-        return { pokemonTcgId: null, cardArtworkUrl: null, price: null };
-      }
-      data.data = broadData.data;
+    // Try exact match first
+    let cards = await tcgFetch(`name:"${cardName}" set.name:"${setName}" number:"${setNumber}"`);
+    console.log(`TCG exact match: ${cards.length}`);
+
+    if (cards.length === 0) {
+      // Try without set number
+      cards = await tcgFetch(`name:"${cardName}" set.name:"${setName}"`);
+      console.log(`TCG name+set match: ${cards.length}`);
     }
+
+    if (cards.length === 0) {
+      // Try with just the card name
+      cards = await tcgFetch(`name:"${cardName}"`);
+      console.log(`TCG name-only match: ${cards.length}`);
+    }
+
+    if (cards.length === 0) {
+      return { pokemonTcgId: null, cardArtworkUrl: null, price: null };
+    }
+
+    const data = { data: cards };
 
     const card = data.data[0];
     const pokemonTcgId = card.id;

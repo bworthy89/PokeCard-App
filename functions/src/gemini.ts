@@ -56,20 +56,16 @@ export interface GradingResult {
   explanation: string;
 }
 
-export const gradeCard = async (imageUrl: string): Promise<GradingResult> => {
+export const gradeCardFromBase64 = async (base64Image: string): Promise<GradingResult> => {
   const genAI = getGenAI();
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: gradingSchema,
     },
     systemInstruction: SYSTEM_PROMPT,
   });
-
-  const imageResponse = await fetch(imageUrl);
-  const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-  const base64Image = imageBuffer.toString('base64');
 
   const result = await model.generateContent([
     {

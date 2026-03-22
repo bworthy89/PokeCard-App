@@ -10,10 +10,11 @@ export const signInAnonymously = async () => {
   await firestore().collection('users').doc(user.uid).set({
     createdAt: firestore.FieldValue.serverTimestamp(),
     scanCount: 0,
-  });
+  }, { merge: true });
   return user;
 };
 
-export const getCallable = (name: string) => functions().httpsCallable(name);
+export const getCallable = (name: string) =>
+  functions().httpsCallable(name, { timeout: 300000 });
 
 export { auth, firestore, storage };

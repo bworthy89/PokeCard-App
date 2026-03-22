@@ -6,8 +6,8 @@ import * as ImageManipulator from 'expo-image-manipulator';
 const compressImage = async (uri: string): Promise<string> => {
   const result = await ImageManipulator.manipulateAsync(
     uri,
-    [{ resize: { width: 1500 } }],
-    { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+    [{ resize: { width: 800 } }],
+    { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
   );
   return result.uri;
 };
@@ -27,8 +27,10 @@ export const scanCard = async (
 
     const callable = getCallable('scanCard');
     const response = await callable({ imageUrl: downloadUrl, storagePath });
+    console.log('scanCard response:', JSON.stringify(response.data));
     return { result: response.data as ScanResult };
   } catch (error: any) {
+    console.error('scanCard error:', error.code, error.message, error);
     if (error.code === 'functions/resource-exhausted') {
       return { error: 'quota_exceeded' };
     }

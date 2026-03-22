@@ -1,8 +1,9 @@
 import * as admin from 'firebase-admin';
 
-const db = admin.firestore();
+const getDb = () => admin.firestore();
 
 export const checkRateLimit = async (userId: string): Promise<boolean> => {
+  const db = getDb();
   const now = Date.now();
   const oneHourAgo = now - 60 * 60 * 1000;
   const ref = db.collection('rateLimits').doc(userId);
@@ -20,7 +21,7 @@ export const checkRateLimit = async (userId: string): Promise<boolean> => {
       (t) => t > oneHourAgo
     );
 
-    if (recentTimestamps.length >= 10) {
+    if (recentTimestamps.length >= 30) {
       return false;
     }
 
