@@ -32,7 +32,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pokegrade.app",
+      "bundleIdentifier": "com.worthymedia.pokegrade",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
@@ -42,11 +42,21 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.pokegrade.app",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.worthymedia.pokegrade",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8d347456-fd11-40a4-a671-593e2e4efe53"
+      }
     }
   }
 }
