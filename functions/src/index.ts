@@ -23,6 +23,12 @@ export const scanCard = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'Missing imageUrl or storagePath');
   }
 
+  // Validate imageUrl points to our Firebase Storage bucket (prevent SSRF)
+  const bucketName = admin.storage().bucket().name;
+  if (!imageUrl.startsWith(`https://firebasestorage.googleapis.com/v0/b/${bucketName}/`)) {
+    throw new HttpsError('invalid-argument', 'Invalid image URL');
+  }
+
   let grading;
   try {
     grading = await gradeCard(imageUrl);
@@ -52,18 +58,23 @@ export const cleanupOrphanedImages = onSchedule('every 24 hours', async () => {
   const [files] = await bucket.getFiles({ prefix: 'scans/' });
 
   for (const file of files) {
-    const [metadata] = await file.getMetadata();
-    const created = new Date(metadata.timeCreated as string);
-    if (created < oneDayAgo) {
-      const storagePath = file.name;
-      const userId = file.name.split('/')[1];
-      const cardsSnapshot = await admin.firestore()
-        .collection('users').doc(userId).collection('cards')
-        .where('storagePath', '==', storagePath).limit(1).get();
-      if (cardsSnapshot.empty) {
-        await file.delete();
-        console.log(`Deleted orphaned image: ${file.name}`);
+    try {
+      const [metadata] = await file.getMetadata();
+      const created = new Date(metadata.timeCreated as string);
+      if (created < oneDayAgo) {
+        // Path format: scans/{userId}/{filename}
+        const storagePath = file.name;
+        const userId = file.name.split('/')[1];
+        const cardsSnapshot = await admin.firestore()
+          .collection('users').doc(userId).collection('cards')
+          .where('storagePath', '==', storagePath).limit(1).get();
+        if (cardsSnapshot.empty) {
+          await file.delete();
+          console.log(`Deleted orphaned image: ${file.name}`);
+        }
       }
+    } catch (err) {
+      console.error(`Error processing ${file.name}:`, err);
     }
   }
 });
