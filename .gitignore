@@ -1,7 +1,5 @@
 .superpowers/
 firebase-debug.log
-GoogleService-Info.plist
-google-services.json
 functions/lib/
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 

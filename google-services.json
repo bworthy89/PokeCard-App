@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "741564081006",
+    "project_id": "pokegrade-app",
+    "storage_bucket": "pokegrade-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:741564081006:android:5f76ea9bacf28d12f3177f",
+        "android_client_info": {
+          "package_name": "com.worthymedia.pokegrade"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0glzQU_Nyvh9iYh9vvnD_FS18zVMyZlU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
