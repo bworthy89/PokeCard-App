@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.display,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },

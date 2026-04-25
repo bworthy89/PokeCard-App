@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   value: {
     fontFamily: fonts.display,
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: -0.5,
   },
   bar: { marginTop: 8 },

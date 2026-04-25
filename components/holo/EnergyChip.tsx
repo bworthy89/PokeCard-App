@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   name: {
     color: '#0A0A1F',
     fontFamily: fonts.monoBlack,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0.6,
   },
 });

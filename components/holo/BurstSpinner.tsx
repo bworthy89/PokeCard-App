@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, View, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, Easing, View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
   opacity?: number;
   speed?: number;
   reverse?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const BurstSpinner = ({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Line } from 'react-native-svg';
 import { energy, EnergyType, fonts, HOLO_FOIL_COLORS } from '../../theme';
@@ -11,7 +11,7 @@ interface Props {
   holo?: boolean;
   tilted?: boolean;
   width?: number;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const CardArt = ({
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   bigGlyphText: {
     fontFamily: fonts.display,
-    fontWeight: '900',
+    fontWeight: '800',
     color: 'rgba(255,255,255,0.92)',
     fontSize: 96,
     textShadowColor: 'rgba(255,255,255,0.4)',
