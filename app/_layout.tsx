@@ -1,7 +1,23 @@
-import React from 'react';
-import { Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
+import { useFonts } from 'expo-font';
+import {
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+} from '@expo-google-fonts/bricolage-grotesque';
+import {
+  Geist_400Regular,
+  Geist_500Medium,
+  Geist_700Bold,
+} from '@expo-google-fonts/geist';
+import {
+  GeistMono_500Medium,
+  GeistMono_700Bold,
+  GeistMono_800ExtraBold,
+} from '@expo-google-fonts/geist-mono';
 import { ScanProvider } from '../contexts/ScanContext';
+import { colors } from '../theme';
 
 const TabIcon = ({ name, color }: { name: string; color: string }) => {
   const icons: Record<string, string> = { camera: '📷', grid: '📋' };
@@ -9,17 +25,38 @@ const TabIcon = ({ name, color }: { name: string; color: string }) => {
 };
 
 export default function RootLayout() {
+  const [fontsLoaded, fontsError] = useFonts({
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    Geist_400Regular,
+    Geist_500Medium,
+    Geist_700Bold,
+    GeistMono_500Medium,
+    GeistMono_700Bold,
+    GeistMono_800ExtraBold,
+  });
+
+  useEffect(() => {
+    if (fontsError) {
+      console.error('[fonts] failed to load, falling back to system fonts:', fontsError);
+    }
+  }, [fontsError]);
+
+  if (!fontsLoaded && !fontsError) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg0 }} />;
+  }
+
   return (
     <ScanProvider>
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#0d0d1a',
-            borderTopColor: '#1a1a2e',
+            backgroundColor: colors.bg0,
+            borderTopColor: colors.bg2,
           },
-          tabBarActiveTintColor: '#FFD700',
-          tabBarInactiveTintColor: '#666',
+          tabBarActiveTintColor: '#FFD23D',
+          tabBarInactiveTintColor: colors.ink3,
         }}
       >
         <Tabs.Screen
