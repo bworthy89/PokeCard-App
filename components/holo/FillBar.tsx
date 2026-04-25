@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { energy } from '../../theme';
 
 interface Props {
   pct: number;
@@ -8,20 +9,24 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-export const FillBar = ({ pct, color = '#FFD23D', height = 8, style }: Props) => (
-  <View style={[styles.track, { height }, style]}>
-    <View
-      style={[
-        styles.fill,
-        {
-          width: `${Math.max(0, Math.min(100, pct))}%`,
-          backgroundColor: color,
-          shadowColor: color,
-        },
-      ]}
-    />
-  </View>
-);
+export const FillBar = ({ pct, color = energy.electric.color, height = 8, style }: Props) => {
+  const safePct = Number.isFinite(pct) ? pct : 0;
+  const clamped = Math.max(0, Math.min(100, safePct));
+  return (
+    <View style={[styles.track, { height }, style]}>
+      <View
+        style={[
+          styles.fill,
+          {
+            width: `${clamped}%`,
+            backgroundColor: color,
+            shadowColor: color,
+          },
+        ]}
+      />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   track: {

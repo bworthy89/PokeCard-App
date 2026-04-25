@@ -1,9 +1,11 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle, StyleProp } from 'react-native';
 import { colors, fonts } from '../../theme';
 
+type TextChild = string | number;
+
 interface Props {
-  children: ReactNode;
+  children: TextChild | TextChild[];
   background?: string;
   borderColor?: string;
   textColor?: string;
