@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useFonts } from 'expo-font';
+import { auth } from '../services/firebase';
+import { LoginScreen } from '../components/LoginScreen';
 import {
   BricolageGrotesque_700Bold,
   BricolageGrotesque_800ExtraBold,
@@ -133,17 +136,39 @@ export default function RootLayout() {
     GeistMono_800ExtraBold,
   });
 
+  const [signedIn, setSignedIn] = useState<boolean>(() => !!auth().currentUser);
+
   useEffect(() => {
     if (fontsError) {
       console.error('[fonts] failed to load, falling back to system fonts:', fontsError);
     }
   }, [fontsError]);
 
+  useEffect(() => {
+    const unsub = auth().onAuthStateChanged((u) => setSignedIn(!!u));
+    return unsub;
+  }, []);
+
   if (!fontsLoaded && !fontsError) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg0 }} />;
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: colors.bg0 }} />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (!signedIn) {
+    return (
+      <SafeAreaProvider>
+        <ScanProvider>
+          <LoginScreen />
+        </ScanProvider>
+      </SafeAreaProvider>
+    );
   }
 
   return (
+    <SafeAreaProvider>
     <ScanProvider>
       <Tabs
         screenOptions={{
@@ -197,5 +222,6 @@ export default function RootLayout() {
         <Tabs.Screen name="card-detail" options={{ href: null }} />
       </Tabs>
     </ScanProvider>
+    </SafeAreaProvider>
   );
 }

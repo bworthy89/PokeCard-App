@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { getCards } from '../services/collection';
@@ -25,6 +26,8 @@ import {
   TierBadge,
   TierLadder,
   Sparkline,
+  Reveal,
+  Pop,
 } from '../components/holo';
 import {
   colors,
@@ -61,6 +64,7 @@ const matchWishlist = (
 
 export default function CardDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [card, setCard] = useState<SavedCard | null>(null);
   const [wishlistMatch, setWishlistMatch] = useState<WishlistItem | null>(null);
@@ -157,7 +161,10 @@ export default function CardDetailScreen() {
         pointerEvents="none"
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Top bar */}
         <View style={styles.topBar}>
           <TouchableOpacity
@@ -199,15 +206,15 @@ export default function CardDetailScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <View style={styles.heroArt}>
+          <Pop style={styles.heroArt} delay={80}>
             <CardArt
               type={t}
               name={card.grading.cardName}
               imageUrl={card.cardArtworkUrl}
               holo={tierKey === 'Gem Mint'}
             />
-          </View>
-          <View style={styles.heroMeta}>
+          </Pop>
+          <Reveal delay={250} style={styles.heroMeta}>
             <EnergyChip type={t} size="sm" />
             <Text style={styles.cardName} numberOfLines={2}>
               {card.grading.cardName}
@@ -217,11 +224,11 @@ export default function CardDetailScreen() {
             <View style={{ marginTop: 8 }}>
               <TierBadge tier={tierKey} />
             </View>
-          </View>
+          </Reveal>
         </View>
 
         {/* Price */}
-        <View style={styles.section}>
+        <Reveal delay={400} style={styles.section}>
           <View style={styles.priceHead}>
             <View>
               <Text style={styles.priceLabel}>MARKET NOW</Text>
@@ -274,10 +281,11 @@ export default function CardDetailScreen() {
               </View>
             ))}
           </View>
-        </View>
+        </Reveal>
 
         {/* Price alert */}
-        <View
+        <Reveal
+          delay={550}
           style={[
             styles.section,
             alertOn ? { backgroundColor: 'rgba(255,210,61,0.14)', borderColor: energy.electric.color } : null,
@@ -309,10 +317,10 @@ export default function CardDetailScreen() {
               />
             </TouchableOpacity>
           </View>
-        </View>
+        </Reveal>
 
         {/* Grade breakdown */}
-        <View style={styles.section}>
+        <Reveal delay={700} style={styles.section}>
           <Text style={styles.sectionTitle}>Grade Breakdown</Text>
           <View style={{ marginTop: 10 }}>
             <TierLadder current={tierKey} />
@@ -330,14 +338,14 @@ export default function CardDetailScreen() {
               </View>
             ))}
           </View>
-        </View>
+        </Reveal>
 
         {/* Notes */}
         {card.grading.explanation ? (
-          <View style={styles.notes}>
+          <Reveal delay={850} style={styles.notes}>
             <Text style={styles.notesLabel}>AI NOTES</Text>
             <Text style={styles.notesBody}>{card.grading.explanation}</Text>
-          </View>
+          </Reveal>
         ) : null}
       </ScrollView>
     </HoloBackground>
@@ -362,7 +370,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 280,
   },
-  content: { paddingBottom: 120, paddingTop: 56 },
+  content: { paddingBottom: 120 },
 
   topBar: {
     flexDirection: 'row',

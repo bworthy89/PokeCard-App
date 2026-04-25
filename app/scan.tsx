@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { useScan } from '../contexts/ScanContext';
@@ -27,6 +28,7 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [capturing, setCapturing] = useState(false);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { setImageUri, reset } = useScan();
 
   const scanProgress = useRef(new Animated.Value(0)).current;
@@ -127,7 +129,7 @@ export default function CameraScreen() {
       <View style={styles.scanlineOverlay} pointerEvents="none" />
 
       {/* Top HUD */}
-      <View style={styles.topHud} pointerEvents="box-none">
+      <View style={[styles.topHud, { top: insets.top + 8 }]} pointerEvents="box-none">
         <View style={styles.recChip}>
           <View style={styles.recDot} />
           <Text style={styles.recText}>REC</Text>
@@ -150,7 +152,7 @@ export default function CameraScreen() {
       </View>
 
       {/* Hint */}
-      <View style={styles.hint} pointerEvents="none">
+      <View style={[styles.hint, { top: insets.top + 64 }]} pointerEvents="none">
         <Text style={styles.hintTitle}>Align card in frame</Text>
         <Text style={styles.hintSub}>Hold steady · good light · all 4 corners visible</Text>
       </View>
@@ -241,7 +243,6 @@ const styles = StyleSheet.create({
   },
   topHud: {
     position: 'absolute',
-    top: 60,
     left: 0,
     right: 0,
     paddingHorizontal: 18,
@@ -290,7 +291,6 @@ const styles = StyleSheet.create({
   },
   hint: {
     position: 'absolute',
-    top: 116,
     left: 0,
     right: 0,
     alignItems: 'center',

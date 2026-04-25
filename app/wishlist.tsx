@@ -20,6 +20,7 @@ import {
   HoloBackground,
   ScreenHeader,
   CardArt,
+  Reveal,
 } from '../components/holo';
 import { colors, fonts, energy, inferEnergyType } from '../theme';
 
@@ -164,13 +165,13 @@ export default function WishlistScreen() {
           </View>
         )}
 
-        {items.map((w) => {
+        {items.map((w, i) => {
           const t = inferEnergyType(w.cardName);
           const meta = energy[t];
           const overTarget = (w.currentPrice ?? 0) > w.targetPrice;
           return (
+            <Reveal key={w.id} delay={i * 60}>
             <TouchableOpacity
-              key={w.id}
               activeOpacity={0.85}
               onLongPress={() => handleDelete(w)}
               style={styles.row}
@@ -231,6 +232,7 @@ export default function WishlistScreen() {
                 </View>
               </View>
             </TouchableOpacity>
+            </Reveal>
           );
         })}
       </ScrollView>

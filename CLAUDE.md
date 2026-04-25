@@ -37,6 +37,12 @@ Anonymous auth is the only auth mode. `services/firebase.ts#signInAnonymously` i
 ### Expo Router layout
 File-based routing under `app/`. `_layout.tsx` defines four visible tabs — `index`=Home, `scan`, `collection`=Vault, `profile`=You — with the `scan` slot rendered as a raised circular button via `tabBarButton`. Hidden routes (`href: null`) reached via `router.push`: `analyzing`, `results`, `wishlist`, `card-detail`. `ScanProvider` wraps the tree and holds the ephemeral scan state (`imageUri`, `scanResult`, `scanError`, `isLoading`); the post-scan flow uses `router.push('/results')` and Vault taps go to `/card-detail?id=...`.
 
+### Auth gate
+`_layout.tsx` subscribes to `auth().onAuthStateChanged`. When no Firebase user is present it renders `components/LoginScreen.tsx` instead of the `<Tabs>` navigator (LoginScreen is **not** a route — it's a regular component rendered conditionally so it sits outside the navigator). Every CTA on the login screen — Google, Apple, "Enter the Arena", "Skip — try as guest" — calls `services/firebase.ts#signInAnonymously`; the resulting `onAuthStateChanged` flips state and the layout re-mounts as `<Tabs>`. Service-side calls to `signInAnonymously` (in `scanCard`, `collection`, `wishlist`) remain idempotent and short-circuit when `currentUser` is already set.
+
+### Safe-area handling
+`react-native-safe-area-context` is wired up: `_layout.tsx` wraps the tree in `<SafeAreaProvider>`. Screens that use `ScreenHeader` get top inset padding for free (the header reads `useSafeAreaInsets`). Screens that paint directly under the status bar (Home, Scan, Card Detail) read insets themselves and apply `paddingTop: insets.top + 8` to their scrollable content / absolute-positioned HUD. When adding a new full-bleed screen, follow that pattern instead of hardcoding paddingTop.
+
 ### Firestore schema
 - `users/{uid}` — `{ createdAt, scanCount }`
 - `users/{uid}/cards/{cardId}` — flattened grading fields plus `imageUrl`, `storagePath`, `cardArtworkUrl`, `pokemonTcgId`, `rawValue` (price object), `scannedAt`. Note that `collection.ts#getCards` re-nests this into `SavedCard.grading` on read — keep the flatten/nest pair in sync when adding fields.

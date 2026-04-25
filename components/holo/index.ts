@@ -11,3 +11,5 @@ export { SubgradeDial } from './SubgradeDial';
 export { Chip } from './Chip';
 export { TierLadder } from './TierLadder';
 export { HoloFoil } from './HoloFoil';
+export { Reveal } from './Reveal';
+export { Pop } from './Pop';
