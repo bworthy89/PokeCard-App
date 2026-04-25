@@ -1,20 +1,77 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Animated,
+  Easing,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 import { useScan } from '../contexts/ScanContext';
-import { CardPreview } from '../components/CardPreview';
-import { GradeDisplay } from '../components/GradeDisplay';
-import { SubgradeGrid } from '../components/SubgradeGrid';
-import { PriceRange } from '../components/PriceRange';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { AdBanner } from '../components/AdBanner';
 import { saveCard } from '../services/collection';
+import {
+  HoloBackground,
+  ScreenHeader,
+  CardArt,
+  EnergyChip,
+  Chip,
+  SubgradeDial,
+  HoloFoil,
+} from '../components/holo';
+import {
+  colors,
+  energy,
+  fonts,
+  tiers,
+  Tier,
+  inferEnergyType,
+} from '../theme';
+
+const SUBGRADE_ACCENTS: Array<['Centering' | 'Corners' | 'Edges' | 'Surface', string]> = [
+  ['Centering', energy.water.color],
+  ['Corners',   energy.grass.color],
+  ['Edges',     energy.psychic.color],
+  ['Surface',   energy.electric.color],
+];
+
+const isKnownTier = (t: string): t is Tier =>
+  t === 'Gem Mint' ||
+  t === 'Near Mint' ||
+  t === 'Lightly Played' ||
+  t === 'Moderately Played' ||
+  t === 'Heavily Played';
 
 export default function ResultsScreen() {
   const router = useRouter();
   const { scanResult, scanError, reset } = useScan();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const flash = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!scanResult) return;
+    Animated.sequence([
+      Animated.timing(flash, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(flash, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scanResult, flash]);
 
   if (scanError && scanError !== 'card_not_found') {
     return (
@@ -41,13 +98,23 @@ export default function ResultsScreen() {
   }
 
   const { grading, price, cardArtworkUrl } = scanResult;
+  const tierKey: Tier = isKnownTier(grading.overallTier) ? grading.overallTier : 'Near Mint';
+  const tierMeta = tiers[tierKey];
+  const isHolo = tierKey === 'Gem Mint';
+  const energyType = inferEnergyType(grading.cardName);
+  const subValues: Record<string, number> = {
+    Centering: grading.centering,
+    Corners: grading.corners,
+    Edges: grading.edges,
+    Surface: grading.surface,
+  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await saveCard(scanResult);
       setSaved(true);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save card. Please try again.');
     } finally {
       setSaving(false);
@@ -60,126 +127,428 @@ export default function ResultsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <CardPreview
-          cardName={grading.cardName}
-          setName={grading.setName}
-          setNumber={grading.setNumber}
-          imageUrl={cardArtworkUrl}
-        />
+    <HoloBackground>
+      <ScreenHeader title="Grade Report" onBack={handleScanAnother} />
 
-        {scanError === 'card_not_found' && (
-          <Text style={styles.warning}>Card not found in database</Text>
-        )}
-
-        <GradeDisplay tier={grading.overallTier} estimatedPSA={grading.estimatedPSA} />
-
-        <SubgradeGrid
-          centering={grading.centering}
-          corners={grading.corners}
-          edges={grading.edges}
-          surface={grading.surface}
-        />
-
-        <View style={styles.explanationBox}>
-          <Text style={styles.explanation}>{grading.explanation}</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Card hero */}
+        <View style={styles.hero}>
+          <CardArt
+            type={energyType}
+            name={grading.cardName}
+            imageUrl={cardArtworkUrl}
+            holo={isHolo}
+            tilted
+            width={200}
+          />
         </View>
 
-        <PriceRange price={price} />
+        <View style={styles.heroMeta}>
+          <Text style={styles.cardName} numberOfLines={2}>{grading.cardName}</Text>
+          <Text style={styles.cardSet}>
+            {grading.setName} · {grading.setNumber}
+          </Text>
+          <View style={styles.heroChips}>
+            <EnergyChip type={energyType} size="sm" />
+            {scanError === 'card_not_found' && (
+              <Chip
+                background="rgba(255, 138, 61, 0.16)"
+                borderColor="rgba(255, 138, 61, 0.4)"
+                textColor={energy.fighting.color}
+              >
+                NOT IN DB
+              </Chip>
+            )}
+          </View>
+        </View>
 
-        <Text style={styles.disclaimer}>
-          Estimates only — not a substitute for professional grading. Prices are approximate and may not reflect current market value.
-        </Text>
+        {/* Tier banner */}
+        <View style={styles.tierWrap}>
+          {isHolo ? (
+            <HoloFoil style={styles.tierBanner}>
+              <TierBannerInner tier={tierKey} estimatedPSA={grading.estimatedPSA} />
+            </HoloFoil>
+          ) : (
+            <LinearGradient
+              colors={[tierMeta.color, colors.bg1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.tierBanner}
+            >
+              <TierBannerInner tier={tierKey} estimatedPSA={grading.estimatedPSA} />
+            </LinearGradient>
+          )}
+        </View>
 
+        {/* Sub-grades */}
+        <SectionHead title="Sub-grades" />
+        <View style={styles.subgradeGrid}>
+          {SUBGRADE_ACCENTS.map(([label, color]) => (
+            <View key={label} style={styles.subgradeCell}>
+              <SubgradeDial label={label} value={subValues[label]} accent={color} />
+            </View>
+          ))}
+        </View>
+
+        {/* AI Notes */}
+        {grading.explanation ? (
+          <View style={styles.notes}>
+            <View style={styles.notesHead}>
+              <Text style={styles.notesIcon}>💬</Text>
+              <Text style={styles.notesLabel}>AI NOTES</Text>
+            </View>
+            <Text style={styles.notesBody}>{grading.explanation}</Text>
+          </View>
+        ) : null}
+
+        {/* Market estimate */}
+        <View style={styles.market}>
+          <View style={styles.marketHead}>
+            <Text style={styles.marketTitle}>Market Estimate</Text>
+            <Chip
+              background="rgba(61, 165, 255, 0.16)"
+              borderColor="rgba(61, 165, 255, 0.32)"
+              textColor={energy.water.color}
+            >
+              ● LIVE
+            </Chip>
+          </View>
+          {price?.market != null ? (
+            <>
+              <Text style={styles.marketAmount}>
+                ${(price.low ?? price.market * 0.7).toFixed(0)}
+                <Text style={styles.marketRange}>
+                  {' '}– ${(price.high ?? price.market * 1.4).toFixed(0)}
+                </Text>
+              </Text>
+              <View style={styles.priceRow}>
+                <PriceCol label="Low" value={price.low ?? price.market * 0.7} />
+                <PriceCol label="Mid" value={price.market} accent={energy.electric.color} />
+                <PriceCol label="High" value={price.high ?? price.market * 1.4} />
+              </View>
+            </>
+          ) : (
+            <Text style={styles.marketUnavailable}>Price unavailable for this card</Text>
+          )}
+        </View>
+
+        {/* Disclaimer */}
+        <View style={styles.disclaimer}>
+          <Text style={styles.disclaimerIcon}>ⓘ</Text>
+          <Text style={styles.disclaimerText}>
+            <Text style={styles.disclaimerStrong}>Estimate only.</Text> AI grading is not a substitute
+            for professional services like PSA or Beckett. Prices are approximate.
+          </Text>
+        </View>
+
+        {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.saveButton, saved && styles.savedButton]}
+            activeOpacity={0.85}
             onPress={handleSave}
             disabled={saving || saved}
+            style={[styles.popBtn, saved && styles.popBtnSaved]}
           >
-            <Text style={styles.saveButtonText}>
-              {saved ? 'Saved!' : saving ? 'Saving...' : 'Save to Collection'}
+            <Text style={styles.popBtnText}>
+              {saved ? '✓ SAVED' : saving ? 'Saving…' : '+ Add to Vault'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.scanButton} onPress={handleScanAnother}>
-            <Text style={styles.scanButtonText}>Scan Another</Text>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleScanAnother}
+            style={styles.ghostBtn}
+          >
+            <Text style={styles.ghostBtnText}>Scan again</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
+      {/* White flash reveal */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: '#fff',
+            opacity: flash,
+          },
+        ]}
+      />
+
       <AdBanner />
-    </View>
+    </HoloBackground>
   );
 }
 
+const TierBannerInner = ({ tier, estimatedPSA }: { tier: Tier; estimatedPSA: string }) => (
+  <View style={styles.tierInner}>
+    <Text style={styles.tierLabel}>★ OVERALL TIER ★</Text>
+    <Text style={styles.tierName}>{tier.toUpperCase()}</Text>
+    <Text style={styles.tierPSA}>EST. {estimatedPSA}</Text>
+  </View>
+);
+
+const SectionHead = ({ title }: { title: string }) => (
+  <View style={styles.sectionHead}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
+
+const PriceCol = ({ label, value, accent }: { label: string; value: number; accent?: string }) => (
+  <View style={styles.priceCol}>
+    <Text style={styles.priceLabel}>{label.toUpperCase()}</Text>
+    <Text style={[styles.priceValue, { color: accent ?? colors.ink1 }]}>${value.toFixed(0)}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0d0d1a',
+  scroll: { flex: 1 },
+  content: { paddingBottom: 130 },
+
+  hero: {
+    paddingVertical: 18,
+    alignItems: 'center',
   },
-  scroll: {
-    flex: 1,
+  heroMeta: {
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: 6,
   },
-  content: {
-    padding: 20,
-    paddingTop: 60,
-    gap: 16,
-  },
-  warning: {
-    color: '#facc15',
-    fontSize: 13,
+  cardName: {
+    fontFamily: fonts.display,
+    fontWeight: '800',
+    fontSize: 26,
+    color: colors.ink0,
     textAlign: 'center',
-    fontStyle: 'italic',
+    letterSpacing: -0.5,
   },
-  explanationBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    padding: 12,
+  cardSet: {
+    fontFamily: fonts.monoBold,
+    color: colors.ink3,
+    fontSize: 12,
   },
-  explanation: {
-    color: '#ccc',
-    fontSize: 14,
+  heroChips: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 4,
+  },
+
+  tierWrap: { paddingHorizontal: 18, marginTop: 18 },
+  tierBanner: {
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#000',
+    overflow: 'hidden',
+  },
+  tierInner: {
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+  },
+  tierLabel: {
+    fontFamily: fonts.monoBlack,
+    color: '#0A0A1F',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  tierName: {
+    fontFamily: fonts.display,
+    color: '#0A0A1F',
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: -1,
+    marginTop: 4,
+  },
+  tierPSA: {
+    fontFamily: fonts.monoBold,
+    color: '#0A0A1F',
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+
+  sectionHead: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 6,
+  },
+  sectionTitle: {
+    fontFamily: fonts.display,
+    fontWeight: '800',
+    fontSize: 16,
+    color: colors.ink0,
+    letterSpacing: -0.4,
+  },
+
+  subgradeGrid: {
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  subgradeCell: { width: '48%' },
+
+  notes: {
+    marginHorizontal: 18,
+    marginTop: 16,
+    padding: 14,
+    backgroundColor: colors.bg1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.lineStrong,
+  },
+  notesHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  notesIcon: { fontSize: 14 },
+  notesLabel: {
+    fontFamily: fonts.monoBlack,
+    color: colors.ink2,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  notesBody: {
+    fontFamily: fonts.body,
+    color: colors.ink1,
+    fontSize: 13,
     lineHeight: 20,
   },
-  disclaimer: {
-    color: '#555',
-    fontSize: 11,
-    textAlign: 'center',
-    fontStyle: 'italic',
+
+  market: {
+    marginHorizontal: 18,
+    marginTop: 14,
+    padding: 16,
+    backgroundColor: colors.bg1,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
   },
+  marketHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  marketTitle: {
+    fontFamily: fonts.display,
+    color: colors.ink0,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  marketAmount: {
+    fontFamily: fonts.display,
+    color: colors.ink0,
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: -1,
+  },
+  marketRange: {
+    color: colors.ink3,
+    fontSize: 28,
+  },
+  marketUnavailable: {
+    fontFamily: fonts.bodyMed,
+    color: colors.ink2,
+    fontSize: 14,
+    marginTop: 4,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+  },
+  priceCol: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  priceLabel: {
+    fontFamily: fonts.monoBlack,
+    color: colors.ink3,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  priceValue: {
+    fontFamily: fonts.display,
+    fontWeight: '800',
+    fontSize: 16,
+    marginTop: 2,
+  },
+
+  disclaimer: {
+    marginHorizontal: 18,
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.lineStrong,
+  },
+  disclaimerIcon: { color: colors.ink2, fontSize: 14, lineHeight: 18 },
+  disclaimerText: {
+    flex: 1,
+    fontFamily: fonts.mono,
+    color: colors.ink3,
+    fontSize: 11,
+    lineHeight: 17,
+  },
+  disclaimerStrong: { color: colors.ink2, fontFamily: fonts.monoBold },
+
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    paddingHorizontal: 18,
+    marginTop: 16,
   },
-  saveButton: {
+  popBtn: {
     flex: 1,
-    backgroundColor: '#FFD700',
+    backgroundColor: energy.electric.color,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 999,
     paddingVertical: 14,
-    borderRadius: 10,
     alignItems: 'center',
   },
-  savedButton: {
-    backgroundColor: '#22c55e',
+  popBtnSaved: {
+    backgroundColor: energy.grass.color,
   },
-  saveButtonText: {
+  popBtnText: {
+    fontFamily: fonts.display,
     color: '#000',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
   },
-  scanButton: {
-    flex: 1,
-    backgroundColor: '#1a1a2e',
+  ghostBtn: {
+    paddingHorizontal: 22,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: '#333',
-    paddingVertical: 14,
-    borderRadius: 10,
+    borderColor: colors.lineStrong,
+    borderRadius: 999,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  scanButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
+  ghostBtnText: {
+    fontFamily: fonts.display,
+    color: colors.ink0,
+    fontSize: 14,
+    fontWeight: '800',
   },
 });
