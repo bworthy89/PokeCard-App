@@ -35,7 +35,7 @@ import {
   energy,
   tiers,
   Tier,
-  inferEnergyType,
+  resolveEnergyType,
 } from '../theme';
 
 const isKnownTier = (t: string): t is Tier =>
@@ -100,7 +100,7 @@ export default function CardDetailScreen() {
     );
   }
 
-  const t = inferEnergyType(card.grading.cardName);
+  const t = resolveEnergyType(card.grading.cardName, card.pokemonTypes);
   const meta = energy[t];
   const tierKey: Tier = isKnownTier(card.grading.overallTier) ? card.grading.overallTier : 'Near Mint';
   const market = card.price?.market ?? 0;

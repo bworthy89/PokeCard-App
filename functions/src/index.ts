@@ -60,6 +60,7 @@ export const scanCard = functions.runWith({ timeoutSeconds: 300, memory: '1GB' }
     imageUrl,
     storagePath,
     cardArtworkUrl: cardData.cardArtworkUrl,
+    pokemonTypes: cardData.pokemonTypes,
   };
 });
 

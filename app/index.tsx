@@ -25,7 +25,7 @@ import {
   fonts,
   energy,
   tiers,
-  inferEnergyType,
+  resolveEnergyType,
 } from '../theme';
 import { formatPriceCompact, formatPriceParts } from '../lib/format';
 
@@ -212,7 +212,7 @@ export default function HomeScreen() {
                 contentContainerStyle={styles.topMovers}
               >
                 {topByPrice.map((c) => {
-                  const t = inferEnergyType(c.grading.cardName);
+                  const t = resolveEnergyType(c.grading.cardName, c.pokemonTypes);
                   const isGem = c.grading.overallTier === 'Gem Mint';
                   return (
                     <TouchableOpacity

@@ -24,7 +24,7 @@ import {
   tiers,
   Tier,
   EnergyType,
-  inferEnergyType,
+  resolveEnergyType,
 } from '../theme';
 import { formatPriceCompact } from '../lib/format';
 
@@ -91,7 +91,7 @@ export default function CollectionScreen() {
     () =>
       cards.map((c) => ({
         card: c,
-        type: inferEnergyType(c.grading.cardName),
+        type: resolveEnergyType(c.grading.cardName, c.pokemonTypes),
       })),
     [cards]
   );

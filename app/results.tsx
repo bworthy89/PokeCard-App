@@ -33,7 +33,7 @@ import {
   fonts,
   tiers,
   Tier,
-  inferEnergyType,
+  resolveEnergyType,
 } from '../theme';
 import { formatPriceCompact } from '../lib/format';
 
@@ -100,11 +100,11 @@ export default function ResultsScreen() {
     );
   }
 
-  const { grading, price, cardArtworkUrl } = scanResult;
+  const { grading, price, cardArtworkUrl, pokemonTypes } = scanResult;
   const tierKey: Tier = isKnownTier(grading.overallTier) ? grading.overallTier : 'Near Mint';
   const tierMeta = tiers[tierKey];
   const isHolo = tierKey === 'Gem Mint';
-  const energyType = inferEnergyType(grading.cardName);
+  const energyType = resolveEnergyType(grading.cardName, pokemonTypes);
   const subValues: Record<string, number> = {
     Centering: grading.centering,
     Corners: grading.corners,
