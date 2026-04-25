@@ -35,11 +35,12 @@ Anonymous auth is the only auth mode. `services/firebase.ts#signInAnonymously` i
 4. `/results` displays; on save, `services/collection.ts#saveCard` writes to `users/{uid}/cards/{auto}` and increments `scanCount`.
 
 ### Expo Router layout
-File-based routing under `app/`. `_layout.tsx` defines two visible tabs (`index`=Scan, `collection`) and hides `analyzing`/`results` (`href: null`) — those are reached by `router.push`. `ScanProvider` wraps the whole tree and holds the ephemeral scan state (`imageUri`, `scanResult`, `scanError`, `isLoading`).
+File-based routing under `app/`. `_layout.tsx` defines four visible tabs — `index`=Home, `scan`, `collection`=Vault, `profile`=You — with the `scan` slot rendered as a raised circular button via `tabBarButton`. Hidden routes (`href: null`) reached via `router.push`: `analyzing`, `results`, `wishlist`, `card-detail`. `ScanProvider` wraps the tree and holds the ephemeral scan state (`imageUri`, `scanResult`, `scanError`, `isLoading`); the post-scan flow uses `router.push('/results')` and Vault taps go to `/card-detail?id=...`.
 
 ### Firestore schema
 - `users/{uid}` — `{ createdAt, scanCount }`
 - `users/{uid}/cards/{cardId}` — flattened grading fields plus `imageUrl`, `storagePath`, `cardArtworkUrl`, `pokemonTcgId`, `rawValue` (price object), `scannedAt`. Note that `collection.ts#getCards` re-nests this into `SavedCard.grading` on read — keep the flatten/nest pair in sync when adding fields.
+- `users/{uid}/wishlist/{wishId}` — `{ cardName, setName?, setNumber?, pokemonTcgId?, cardArtworkUrl?, targetPrice, currentPrice?, alertEnabled, createdAt }`. CRUD via `services/wishlist.ts`. Add new optional fields to `WishlistItem` in `types/index.ts` and `cleanInput` in `services/wishlist.ts` together — the writer omits `undefined` fields so reads should treat them as optional.
 - `priceCache/{pokemonTcgId}` — TCG price cached for 24h (server-side only).
 - `rateLimits/{uid}` — `{ timestamps: number[] }`, 30 scans per rolling hour, enforced in a Firestore transaction.
 
@@ -53,7 +54,7 @@ Backend throws `HttpsError` with codes `unauthenticated` / `invalid-argument` / 
 `cleanupOrphanedImages` (v2 scheduled function from `firebase-functions/v2/scheduler`, every 24h) deletes `scans/*` files older than 24h that aren't referenced by any card doc — path convention `scans/{uid}/{file}` is load-bearing. Note the v1/v2 split: `scanCard` uses `firebase-functions/v1` (`functions.https.onCall`, `functions.https.HttpsError`) while `cleanupOrphanedImages` uses v2 — don't mix the import styles.
 
 ### Security rules
-- `firestore.rules`: `users/{uid}` and `users/{uid}/cards/{cardId}` allow read/write only by the owning uid; `priceCache` is client-readable, write-blocked (server-only); `rateLimits` is fully blocked from clients.
+- `firestore.rules`: `users/{uid}`, `users/{uid}/cards/{cardId}`, and `users/{uid}/wishlist/{wishId}` allow read/write only by the owning uid; `priceCache` is client-readable, write-blocked (server-only); `rateLimits` is fully blocked from clients.
 - `storage.rules`: `scans/{uid}/{fileName}` — uid-scoped read/write, with a 1MB cap and `image/jpeg` content-type required. The 800w/q0.7 client compression is sized to fit under this cap.
 
 ## Native-module caveats

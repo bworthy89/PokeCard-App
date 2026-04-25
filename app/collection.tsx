@@ -11,7 +11,6 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getCards } from '../services/collection';
 import { SavedCard } from '../types';
-import { useScan } from '../contexts/ScanContext';
 import {
   HoloBackground,
   ScreenHeader,
@@ -65,7 +64,6 @@ export default function CollectionScreen() {
   const [filter, setFilter] = useState<FilterKey>('all');
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const { setScanResult, setScanError } = useScan();
 
   const loadCards = useCallback(async () => {
     try {
@@ -121,16 +119,7 @@ export default function CollectionScreen() {
   });
 
   const handleCardPress = (card: SavedCard) => {
-    setScanResult({
-      grading: card.grading,
-      price: card.price,
-      pokemonTcgId: card.pokemonTcgId,
-      imageUrl: card.imageUrl,
-      storagePath: card.storagePath,
-      cardArtworkUrl: card.cardArtworkUrl,
-    });
-    setScanError(null);
-    router.push('/results');
+    router.push({ pathname: '/card-detail', params: { id: card.id } });
   };
 
   const renderCard = ({ item }: { item: { card: SavedCard; type: EnergyType } }) => {
