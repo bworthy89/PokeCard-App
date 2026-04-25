@@ -8,7 +8,7 @@ interface Props extends ViewProps {
 }
 
 export const DotGrid = ({ spacing = 14, opacity = 0.06, style, ...rest }: Props) => (
-  <View style={[StyleSheet.absoluteFill, style]} pointerEvents="none" {...rest}>
+  <View style={[StyleSheet.absoluteFill, style]} {...rest} pointerEvents="none">
     <Svg width="100%" height="100%">
       <Defs>
         <Pattern id="dots" x={0} y={0} width={spacing} height={spacing} patternUnits="userSpaceOnUse">
