@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -85,6 +86,11 @@ export const LoginScreen = ({ onSignedIn }: Props) => {
       onSignedIn?.();
     } catch (e) {
       console.error('Sign-in failed:', e);
+      const message =
+        e instanceof Error && e.message
+          ? e.message
+          : 'Please check your connection and try again.';
+      Alert.alert('Sign-in failed', message);
     } finally {
       setBusy(false);
     }
