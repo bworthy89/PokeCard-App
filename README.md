@@ -14,7 +14,7 @@ Built on **Firebase Callable Functions** (Gemini 2.5 Flash for grading + the Pok
 
 ## Project layout
 
-```
+```text
 app/                  Expo Router screens (Scan, Analyzing, Results, Collection)
 components/           UI components (legacy + new components/holo/* design system)
 contexts/ScanContext  Ephemeral scan state
