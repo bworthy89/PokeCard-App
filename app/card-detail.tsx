@@ -11,8 +11,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { getCards } from '../services/collection';
-import { addWishlistItem } from '../services/wishlist';
-import { SavedCard } from '../types';
+import {
+  addWishlistItem,
+  deleteWishlistItem,
+  getWishlist,
+  updateWishlistItem,
+} from '../services/wishlist';
+import { SavedCard, WishlistItem } from '../types';
 import {
   HoloBackground,
   CardArt,
@@ -39,21 +44,37 @@ const isKnownTier = (t: string): t is Tier =>
 
 const synthHistory = (current: number): number[] =>
   Array.from({ length: 24 }, (_, i) => {
-    const base = current * (0.6 + 0.4 * (i / 23));
-    return base + Math.sin(i * 0.7) * current * 0.08;
+    const base = current * (0.86 + 0.14 * (i / 23));
+    return base + Math.sin(i * 0.7) * current * 0.02;
   });
+
+const matchWishlist = (
+  list: WishlistItem[],
+  cardName: string,
+  setNumber?: string
+): WishlistItem | null => {
+  const exact = list.find(
+    (w) => w.cardName === cardName && (setNumber ? w.setNumber === setNumber : true)
+  );
+  return exact ?? list.find((w) => w.cardName === cardName) ?? null;
+};
 
 export default function CardDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [card, setCard] = useState<SavedCard | null>(null);
-  const [alertOn, setAlertOn] = useState(false);
-  const [wishlistAdded, setWishlistAdded] = useState(false);
+  const [wishlistMatch, setWishlistMatch] = useState<WishlistItem | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const all = await getCards();
-      setCard(all.find((c) => c.id === id) ?? null);
+      const [all, wish] = await Promise.all([getCards(), getWishlist().catch(() => [])]);
+      const found = all.find((c) => c.id === id) ?? null;
+      setCard(found);
+      setWishlistMatch(
+        found
+          ? matchWishlist(wish, found.grading.cardName, found.grading.setNumber)
+          : null
+      );
     } catch (e) {
       console.error('Failed to load card:', e);
     }
@@ -80,25 +101,49 @@ export default function CardDetailScreen() {
   const tierKey: Tier = isKnownTier(card.grading.overallTier) ? card.grading.overallTier : 'Near Mint';
   const market = card.price?.market ?? 0;
   const history = market > 0 ? synthHistory(market) : Array.from({ length: 24 }, () => 0);
-  const alertTarget = market > 0 ? Math.round(market * 1.2) : 0;
+  const first = history[0];
+  const last = history[history.length - 1];
+  const deltaPct = market > 0 && first > 0 ? ((last - first) / first) * 100 : 0;
+  const alertOn = wishlistMatch?.alertEnabled ?? false;
+  const wishlistAdded = wishlistMatch != null;
+  const alertTarget = wishlistMatch?.targetPrice ?? (market > 0 ? Math.round(market * 1.2) : 0);
+
+  const addNew = async (alertEnabled: boolean) => {
+    await addWishlistItem({
+      cardName: card.grading.cardName,
+      setName: card.grading.setName,
+      setNumber: card.grading.setNumber,
+      pokemonTcgId: card.pokemonTcgId ?? undefined,
+      cardArtworkUrl: card.cardArtworkUrl ?? undefined,
+      targetPrice: market > 0 ? Math.max(1, Math.round(market * 0.9)) : 50,
+      currentPrice: market || undefined,
+      alertEnabled,
+    });
+  };
 
   const handleWishlist = async () => {
-    if (wishlistAdded) return;
     try {
-      await addWishlistItem({
-        cardName: card.grading.cardName,
-        setName: card.grading.setName,
-        setNumber: card.grading.setNumber,
-        pokemonTcgId: card.pokemonTcgId ?? undefined,
-        cardArtworkUrl: card.cardArtworkUrl ?? undefined,
-        targetPrice: market * 0.9 || 50,
-        currentPrice: market,
-        alertEnabled: true,
-      });
-      setWishlistAdded(true);
-      Alert.alert('Added to wishlist', `${card.grading.cardName} is now tracked.`);
+      if (wishlistMatch) {
+        await deleteWishlistItem(wishlistMatch.id);
+      } else {
+        await addNew(true);
+      }
+      await load();
     } catch {
-      Alert.alert('Error', 'Could not add to wishlist.');
+      Alert.alert('Error', 'Could not update wishlist.');
+    }
+  };
+
+  const handleToggleAlert = async () => {
+    try {
+      if (wishlistMatch) {
+        await updateWishlistItem(wishlistMatch.id, { alertEnabled: !alertOn });
+      } else {
+        await addNew(true);
+      }
+      await load();
+    } catch {
+      Alert.alert('Error', 'Could not update alert.');
     }
   };
 
@@ -185,7 +230,20 @@ export default function CardDetailScreen() {
               </Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={[styles.priceDelta, { color: energy.grass.color }]}>↑ 4.2%</Text>
+              {market > 0 ? (
+                <Text
+                  style={[
+                    styles.priceDelta,
+                    {
+                      color: deltaPct >= 0 ? energy.grass.color : energy.fire.color,
+                    },
+                  ]}
+                >
+                  {deltaPct >= 0 ? '↑' : '↓'} {Math.abs(deltaPct).toFixed(1)}%
+                </Text>
+              ) : (
+                <Text style={[styles.priceDelta, { color: colors.ink3 }]}>—</Text>
+              )}
               <Text style={styles.pricePeriod}>30D · est.</Text>
             </View>
           </View>
@@ -237,7 +295,7 @@ export default function CardDetailScreen() {
             </View>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => setAlertOn((on) => !on)}
+              onPress={handleToggleAlert}
               style={[
                 styles.toggle,
                 alertOn ? { backgroundColor: energy.grass.color } : { backgroundColor: 'rgba(255,255,255,0.1)' },

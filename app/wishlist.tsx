@@ -53,7 +53,7 @@ export default function WishlistScreen() {
       Alert.alert('Card name required', 'Enter a card name to track.');
       return;
     }
-    if (!Number.isFinite(targetPrice) || targetPrice < 0) {
+    if (!Number.isFinite(targetPrice) || targetPrice <= 0) {
       Alert.alert('Target price required', 'Enter a positive number.');
       return;
     }
