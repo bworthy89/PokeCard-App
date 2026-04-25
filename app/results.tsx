@@ -24,6 +24,8 @@ import {
   Chip,
   SubgradeDial,
   HoloFoil,
+  Pop,
+  Reveal,
 } from '../components/holo';
 import {
   colors,
@@ -136,7 +138,7 @@ export default function ResultsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Card hero */}
-        <View style={styles.hero}>
+        <Pop style={styles.hero} delay={120}>
           <CardArt
             type={energyType}
             name={grading.cardName}
@@ -145,9 +147,9 @@ export default function ResultsScreen() {
             tilted
             width={200}
           />
-        </View>
+        </Pop>
 
-        <View style={styles.heroMeta}>
+        <Reveal delay={400} style={styles.heroMeta}>
           <Text style={styles.cardName} numberOfLines={2}>{grading.cardName}</Text>
           <Text style={styles.cardSet}>
             {grading.setName} · {grading.setNumber}
@@ -164,10 +166,10 @@ export default function ResultsScreen() {
               </Chip>
             )}
           </View>
-        </View>
+        </Reveal>
 
         {/* Tier banner */}
-        <View style={styles.tierWrap}>
+        <Reveal delay={600} style={styles.tierWrap}>
           {isHolo ? (
             <HoloFoil style={styles.tierBanner}>
               <TierBannerInner tier={tierKey} estimatedPSA={grading.estimatedPSA} />
@@ -182,31 +184,33 @@ export default function ResultsScreen() {
               <TierBannerInner tier={tierKey} estimatedPSA={grading.estimatedPSA} />
             </LinearGradient>
           )}
-        </View>
+        </Reveal>
 
         {/* Sub-grades */}
-        <SectionHead title="Sub-grades" />
-        <View style={styles.subgradeGrid}>
-          {SUBGRADE_ACCENTS.map(([label, color]) => (
-            <View key={label} style={styles.subgradeCell}>
-              <SubgradeDial label={label} value={subValues[label]} accent={color} />
-            </View>
-          ))}
-        </View>
+        <Reveal delay={800}>
+          <SectionHead title="Sub-grades" />
+          <View style={styles.subgradeGrid}>
+            {SUBGRADE_ACCENTS.map(([label, color]) => (
+              <View key={label} style={styles.subgradeCell}>
+                <SubgradeDial label={label} value={subValues[label]} accent={color} />
+              </View>
+            ))}
+          </View>
+        </Reveal>
 
         {/* AI Notes */}
         {grading.explanation ? (
-          <View style={styles.notes}>
+          <Reveal delay={1000} style={styles.notes}>
             <View style={styles.notesHead}>
               <Text style={styles.notesIcon}>💬</Text>
               <Text style={styles.notesLabel}>AI NOTES</Text>
             </View>
             <Text style={styles.notesBody}>{grading.explanation}</Text>
-          </View>
+          </Reveal>
         ) : null}
 
         {/* Market estimate */}
-        <View style={styles.market}>
+        <Reveal delay={1200} style={styles.market}>
           <View style={styles.marketHead}>
             <Text style={styles.marketTitle}>Market Estimate</Text>
             <Chip
@@ -234,19 +238,19 @@ export default function ResultsScreen() {
           ) : (
             <Text style={styles.marketUnavailable}>Price unavailable for this card</Text>
           )}
-        </View>
+        </Reveal>
 
         {/* Disclaimer */}
-        <View style={styles.disclaimer}>
+        <Reveal delay={1300} style={styles.disclaimer}>
           <Text style={styles.disclaimerIcon}>ⓘ</Text>
           <Text style={styles.disclaimerText}>
             <Text style={styles.disclaimerStrong}>Estimate only.</Text> AI grading is not a substitute
             for professional services like PSA or Beckett. Prices are approximate.
           </Text>
-        </View>
+        </Reveal>
 
         {/* Actions */}
-        <View style={styles.actions}>
+        <Reveal delay={1400} style={styles.actions}>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleSave}
@@ -264,7 +268,7 @@ export default function ResultsScreen() {
           >
             <Text style={styles.ghostBtnText}>Scan again</Text>
           </TouchableOpacity>
-        </View>
+        </Reveal>
       </ScrollView>
 
       {/* White flash reveal */}

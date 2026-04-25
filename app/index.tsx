@@ -8,6 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getCards } from '../services/collection';
@@ -45,6 +46,7 @@ const gemsOf = (cards: SavedCard[]) =>
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<SavedCard[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -92,7 +94,7 @@ export default function HomeScreen() {
     <HoloBackground>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={energy.electric.color} />
         }
@@ -302,7 +304,7 @@ const Stat = ({ label, value, accent }: { label: string; value: number | string;
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  content: { paddingTop: 60, paddingBottom: 110 },
+  content: { paddingBottom: 110 },
 
   header: {
     flexDirection: 'row',
