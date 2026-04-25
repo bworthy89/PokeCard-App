@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Reviews are run on-demand via the CLI (`coderabbit review --base main --agent`),
+# so disable PR-open and push-update auto-reviews from the GitHub app.
+# Manual reviews can still be triggered with an `@coderabbitai review` comment.
+language: en-US
+reviews:
+  profile: chill
+  auto_review:
+    enabled: false
+    drafts: false
