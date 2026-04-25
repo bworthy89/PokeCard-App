@@ -43,7 +43,10 @@ const FILTER_TYPES: EnergyType[] = [
   'grass',
   'electric',
   'psychic',
+  'fighting',
+  'dark',
   'fairy',
+  'steel',
   'dragon',
 ];
 
