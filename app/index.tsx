@@ -27,6 +27,7 @@ import {
   tiers,
   inferEnergyType,
 } from '../theme';
+import { formatPriceCompact, formatPriceParts } from '../lib/format';
 
 // Gentle synthetic trend so the sparkline reads as upward growth.
 // Will be replaced with a real history source in a later phase.
@@ -140,8 +141,8 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.vaultLabel}>Vault Value</Text>
           <Text style={styles.vaultAmount}>
-            ${Math.round(totalValue).toLocaleString()}
-            <Text style={styles.vaultCents}>.00</Text>
+            ${formatPriceParts(totalValue).whole}
+            <Text style={styles.vaultCents}>{formatPriceParts(totalValue).cents}</Text>
           </Text>
           {totalValue > 0 && (
             <View style={styles.trendRow}>
@@ -231,7 +232,7 @@ export default function HomeScreen() {
                       </Text>
                       <View style={styles.moverFoot}>
                         <Text style={styles.moverPrice}>
-                          ${(c.price?.market ?? 0).toFixed(0)}
+                          ${formatPriceCompact(c.price?.market ?? null)}
                         </Text>
                         <Text style={styles.moverTier}>
                           {tiers[c.grading.overallTier as keyof typeof tiers]?.label ?? '—'}

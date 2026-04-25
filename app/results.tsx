@@ -35,6 +35,7 @@ import {
   Tier,
   inferEnergyType,
 } from '../theme';
+import { formatPriceCompact } from '../lib/format';
 
 const SUBGRADE_ACCENTS: Array<['Centering' | 'Corners' | 'Edges' | 'Surface', string]> = [
   ['Centering', energy.water.color],
@@ -224,9 +225,9 @@ export default function ResultsScreen() {
           {price?.market != null ? (
             <>
               <Text style={styles.marketAmount}>
-                ${(price.low ?? price.market * 0.7).toFixed(0)}
+                ${formatPriceCompact(price.low ?? price.market * 0.7)}
                 <Text style={styles.marketRange}>
-                  {' '}– ${(price.high ?? price.market * 1.4).toFixed(0)}
+                  {' '}– ${formatPriceCompact(price.high ?? price.market * 1.4)}
                 </Text>
               </Text>
               <View style={styles.priceRow}>
@@ -305,7 +306,7 @@ const SectionHead = ({ title }: { title: string }) => (
 const PriceCol = ({ label, value, accent }: { label: string; value: number; accent?: string }) => (
   <View style={styles.priceCol}>
     <Text style={styles.priceLabel}>{label.toUpperCase()}</Text>
-    <Text style={[styles.priceValue, { color: accent ?? colors.ink1 }]}>${value.toFixed(0)}</Text>
+    <Text style={[styles.priceValue, { color: accent ?? colors.ink1 }]}>${formatPriceCompact(value)}</Text>
   </View>
 );
 

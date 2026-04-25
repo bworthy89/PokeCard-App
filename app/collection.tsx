@@ -26,6 +26,7 @@ import {
   EnergyType,
   inferEnergyType,
 } from '../theme';
+import { formatPriceCompact } from '../lib/format';
 
 type SortKey = 'value' | 'grade' | 'date';
 type FilterKey = 'all' | EnergyType;
@@ -152,7 +153,7 @@ export default function CollectionScreen() {
           </Text>
           <View style={styles.cardRow}>
             <Text style={[styles.cardPrice, { color: tierColor }]}>
-              {card.price?.market != null ? `$${card.price.market.toFixed(0)}` : '—'}
+              {card.price?.market != null ? `$${formatPriceCompact(card.price.market)}` : '—'}
             </Text>
             <Text style={styles.cardTierMini}>{tiers[tier].label}</Text>
           </View>
@@ -184,7 +185,7 @@ export default function CollectionScreen() {
       <View style={styles.summary}>
         <View style={[styles.summaryCard, { flex: 1.4 }]}>
           <Text style={styles.summaryLabel}>TOTAL VALUE</Text>
-          <Text style={styles.summaryValue}>${totalValue.toFixed(0)}</Text>
+          <Text style={styles.summaryValue}>${formatPriceCompact(totalValue)}</Text>
         </View>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>CARDS</Text>

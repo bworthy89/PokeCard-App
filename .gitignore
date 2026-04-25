@@ -1,4 +1,5 @@
 .superpowers/
+.claude/
 firebase-debug.log
 functions/lib/
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files

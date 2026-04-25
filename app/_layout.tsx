@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useFonts } from 'expo-font';
 import { auth } from '../services/firebase';
@@ -169,21 +169,31 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-    <ScanProvider>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: colors.bg0,
-            borderTopColor: colors.bg2,
-            height: 80,
-            paddingTop: 8,
-            paddingBottom: 18,
-          },
-          tabBarActiveTintColor: colors.ink0,
-          tabBarInactiveTintColor: colors.ink3,
-        }}
-      >
+      <ScanProvider>
+        <AppTabs />
+      </ScanProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function AppTabs() {
+  const insets = useSafeAreaInsets();
+  const baseBottom = 18;
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: colors.bg0,
+          borderTopColor: colors.bg2,
+          height: 80 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: baseBottom + insets.bottom,
+        },
+        tabBarActiveTintColor: colors.ink0,
+        tabBarInactiveTintColor: colors.ink3,
+      }}
+    >
         <Tabs.Screen
           name="index"
           options={{
@@ -216,12 +226,10 @@ export default function RootLayout() {
             tabBarIcon: ({ color }) => <TabGlyph name="user" color={color} />,
           }}
         />
-        <Tabs.Screen name="analyzing" options={{ href: null }} />
-        <Tabs.Screen name="results" options={{ href: null }} />
-        <Tabs.Screen name="wishlist" options={{ href: null }} />
-        <Tabs.Screen name="card-detail" options={{ href: null }} />
-      </Tabs>
-    </ScanProvider>
-    </SafeAreaProvider>
+      <Tabs.Screen name="analyzing" options={{ href: null }} />
+      <Tabs.Screen name="results" options={{ href: null }} />
+      <Tabs.Screen name="wishlist" options={{ href: null }} />
+      <Tabs.Screen name="card-detail" options={{ href: null }} />
+    </Tabs>
   );
 }
