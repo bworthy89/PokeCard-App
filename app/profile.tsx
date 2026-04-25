@@ -19,6 +19,7 @@ import {
   BurstSpinner,
 } from '../components/holo';
 import { colors, fonts, energy, tiers } from '../theme';
+import { formatPriceCompact } from '../lib/format';
 
 const xpForLevel = (lvl: number) => lvl * 50;
 const levelFromScans = (scans: number) => {
@@ -79,7 +80,7 @@ export default function ProfileScreen() {
   const xpPct = nextXP > 0 ? (xp / nextXP) * 100 : 0;
 
   const stats: Array<[string, string | number, string]> = [
-    ['VAULT VALUE', `$${totalValue.toFixed(0)}`, energy.grass.color],
+    ['VAULT VALUE', `$${formatPriceCompact(totalValue)}`, energy.grass.color],
     ['CARDS', cards.length, colors.ink0],
     ['GEMS OWNED', gems, tiers['Gem Mint'].color],
     ['SCANS', scanCount, energy.water.color],
