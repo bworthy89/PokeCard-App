@@ -10,7 +10,6 @@ import {
   Geist_400Regular,
   Geist_500Medium,
   Geist_700Bold,
-  Geist_800ExtraBold,
 } from '@expo-google-fonts/geist';
 import {
   GeistMono_500Medium,
@@ -32,7 +31,6 @@ export default function RootLayout() {
     Geist_400Regular,
     Geist_500Medium,
     Geist_700Bold,
-    Geist_800ExtraBold,
     GeistMono_500Medium,
     GeistMono_700Bold,
     GeistMono_800ExtraBold,
