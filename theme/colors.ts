@@ -39,7 +39,7 @@ export const tiers = {
 
 export type Tier = keyof typeof tiers;
 
-export const HOLO_FOIL_COLORS = ['#FF5A8A', '#FFD23D', '#3DD68C', '#3DA5FF', '#C24DFF', '#FF5A8A'];
+export const HOLO_FOIL_COLORS = ['#FF5A8A', '#FFD23D', '#3DD68C', '#3DA5FF', '#C24DFF', '#FF5A8A'] as const;
 
 export const TIER_ORDER: Tier[] = [
   'Heavily Played',

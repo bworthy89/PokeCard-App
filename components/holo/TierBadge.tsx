@@ -14,7 +14,7 @@ export const TierBadge = ({ tier, large = false }: Props) => {
   if (t.holo) {
     return (
       <LinearGradient
-        colors={HOLO_FOIL_COLORS as unknown as readonly [string, string, ...string[]]}
+        colors={HOLO_FOIL_COLORS}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
