@@ -61,3 +61,20 @@ Backend throws `HttpsError` with codes `unauthenticated` / `invalid-argument` / 
 - `@react-native-firebase/*` and `react-native-google-mobile-ads` are native — Expo Go will not work. Use `expo-dev-client` builds. `google-services.json` and `GoogleService-Info.plist` are committed and required by EAS.
 - AdMob app IDs (`ca-app-pub-3861217447065696~1823111579` for both platforms) live in `app.json` under the `react-native-google-mobile-ads` plugin config. The banner *unit* ID in `components/AdBanner.tsx` is still the placeholder `'YOUR_PRODUCTION_AD_UNIT_ID'` (production builds will fall back to `TestIds.BANNER` only in `__DEV__`) — replace before shipping.
 - React 19.2 / React Native 0.83 / Expo SDK 55 / `expo-router` 55. EAS profiles in `eas.json`: `development` (dev client, internal), `preview` (internal), `production` (autoIncrement).
+
+## Code review workflow (CodeRabbit CLI)
+
+`coderabbit` is installed at `~/.local/bin/coderabbit` and authenticated. Run an automated review at **meaningful checkpoints** — end of a phase, before opening or updating a PR, after a substantial change set — **not on every commit**. Costs a review credit per invocation.
+
+```bash
+coderabbit review --base main --agent
+```
+
+`--agent` emits structured findings. For each finding:
+
+1. **Verify against the current code first** — read the cited file/lines. Findings are sometimes wrong (premise doesn't match the actual code) or scope-violating (suggest behavioral changes outside the current task).
+2. **Apply the fix only if the finding is correct and in-scope.** Don't apply scope-creep changes (e.g., moving lazy auth to eager auth, refactoring unrelated code) — note them and skip.
+3. **Skip and explain** when wrong/redundant/out-of-scope. State the verification reasoning.
+4. **Run `npx tsc --noEmit`** after fixes; commit + push only if it passes.
+
+Pair fixes into one commit when they're closely related (e.g., a single review round); use separate commits when the fixes touch unrelated concerns. Reference the finding category in the commit subject (`fix(holo): …`, `chore(fonts): …`).
