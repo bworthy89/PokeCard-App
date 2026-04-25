@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -25,7 +25,7 @@ const TabIcon = ({ name, color }: { name: string; color: string }) => {
 };
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontsError] = useFonts({
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
     Geist_400Regular,
@@ -36,7 +36,13 @@ export default function RootLayout() {
     GeistMono_800ExtraBold,
   });
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    if (fontsError) {
+      console.error('[fonts] failed to load, falling back to system fonts:', fontsError);
+    }
+  }, [fontsError]);
+
+  if (!fontsLoaded && !fontsError) {
     return <View style={{ flex: 1, backgroundColor: colors.bg0 }} />;
   }
 
