@@ -32,6 +32,30 @@ export interface SavedCard extends ScanResult {
   scannedAt: Date;
 }
 
+export interface WishlistItem {
+  id: string;
+  cardName: string;
+  setName?: string;
+  setNumber?: string;
+  pokemonTcgId?: string;
+  cardArtworkUrl?: string;
+  targetPrice: number;
+  currentPrice?: number;
+  alertEnabled: boolean;
+  createdAt: Date;
+}
+
+export interface WishlistInput {
+  cardName: string;
+  setName?: string;
+  setNumber?: string;
+  pokemonTcgId?: string;
+  cardArtworkUrl?: string;
+  targetPrice: number;
+  currentPrice?: number;
+  alertEnabled?: boolean;
+}
+
 export type ErrorType =
   | 'blurry_image'
   | 'not_pokemon_card'

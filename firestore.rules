@@ -6,6 +6,9 @@ service cloud.firestore {
       match /cards/{cardId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+      match /wishlist/{wishId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
     match /priceCache/{cacheId} {
       allow read: if request.auth != null;
