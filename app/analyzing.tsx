@@ -38,6 +38,7 @@ export default function AnalyzingScreen() {
 
   const [step, setStep] = useState(0);
   const [backendDone, setBackendDone] = useState(false);
+  const navigated = useRef(false);
 
   const ringValues = useRef(RING_COLORS.map(() => new Animated.Value(0))).current;
 
@@ -93,6 +94,7 @@ export default function AnalyzingScreen() {
       incrementScanCount();
       if (error) setScanError(error);
       if (result) setScanResult(result);
+      console.log('[analyzing] backend done, step=', step);
       setBackendDone(true);
     };
 
@@ -100,11 +102,15 @@ export default function AnalyzingScreen() {
   }, [imageUri]);
 
   useEffect(() => {
-    if (backendDone && step >= CHECKS.length) {
-      const t = setTimeout(() => router.replace('/results'), 600);
-      return () => clearTimeout(t);
-    }
-  }, [backendDone, step, router]);
+    if (navigated.current) return;
+    if (!backendDone) return;
+    if (step < CHECKS.length) return;
+    navigated.current = true;
+    console.log('[analyzing] navigating to /results');
+    const t = setTimeout(() => router.replace('/results'), 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backendDone, step]);
 
   return (
     <HoloBackground>
