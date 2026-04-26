@@ -61,6 +61,10 @@ export default function ResultsScreen() {
 
   useEffect(() => {
     if (!scanResult) return;
+    // Tabs.Screen keeps this mounted between scans — clear save state from
+    // any prior result so the CTA isn't stuck on ✓ SAVED.
+    setSaving(false);
+    setSaved(false);
     Animated.sequence([
       Animated.timing(flash, {
         toValue: 1,
