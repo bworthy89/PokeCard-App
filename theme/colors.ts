@@ -63,3 +63,47 @@ export const inferEnergyType = (cardName: string): EnergyType => {
   if (/drag|dragon|drake|ryu|salam/.test(n)) return 'dragon';
   return 'psychic';
 };
+
+/**
+ * Map a Pokémon TCG canonical type string (e.g. "Water", "Lightning") to
+ * our EnergyType. Returns null for unmapped values (e.g. "Colorless", or
+ * an empty/unknown input) so callers can fall back to inferEnergyType.
+ */
+export const tcgTypeToEnergy = (raw: string | null | undefined): EnergyType | null => {
+  if (!raw) return null;
+  switch (raw.toLowerCase()) {
+    case 'fire':       return 'fire';
+    case 'water':      return 'water';
+    case 'grass':      return 'grass';
+    case 'lightning':  return 'electric';
+    case 'electric':   return 'electric';
+    case 'psychic':    return 'psychic';
+    case 'fighting':   return 'fighting';
+    case 'darkness':   return 'dark';
+    case 'dark':       return 'dark';
+    case 'metal':      return 'steel';
+    case 'steel':      return 'steel';
+    case 'fairy':      return 'fairy';
+    case 'dragon':     return 'dragon';
+    default:           return null;  // Colorless, unknown
+  }
+};
+
+/**
+ * Resolve a card's display energy type. Prefers the canonical TCG types
+ * array (set by the Cloud Function from api.pokemontcg.io) and falls back
+ * to a name-based heuristic for old saves or cards the TCG API doesn't
+ * recognize.
+ */
+export const resolveEnergyType = (
+  cardName: string,
+  pokemonTypes?: string[] | null
+): EnergyType => {
+  if (pokemonTypes) {
+    for (const t of pokemonTypes) {
+      const mapped = tcgTypeToEnergy(t);
+      if (mapped) return mapped;
+    }
+  }
+  return inferEnergyType(cardName);
+};

@@ -15,6 +15,7 @@ export const saveCard = async (scanResult: ScanResult): Promise<string> => {
     storagePath: scanResult.storagePath,
     cardArtworkUrl: scanResult.cardArtworkUrl,
     pokemonTcgId: scanResult.pokemonTcgId,
+    pokemonTypes: scanResult.pokemonTypes ?? null,
     rawValue: scanResult.price,
     scannedAt: firestore.FieldValue.serverTimestamp(),
   });
@@ -55,6 +56,7 @@ export const getCards = async (): Promise<SavedCard[]> => {
     imageUrl: doc.data().imageUrl,
     storagePath: doc.data().storagePath,
     cardArtworkUrl: doc.data().cardArtworkUrl,
+    pokemonTypes: doc.data().pokemonTypes ?? null,
     scannedAt: doc.data().scannedAt?.toDate() ?? new Date(),
   }));
 };

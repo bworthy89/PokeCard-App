@@ -9,6 +9,7 @@ interface TcgCardData {
   set: { name: string };
   number: string;
   images: { small: string; large: string };
+  types?: string[];
   tcgplayer?: {
     prices?: {
       normal?: { low: number; mid: number; high: number; market: number };
@@ -21,6 +22,7 @@ interface TcgCardData {
 export interface CardLookupResult {
   pokemonTcgId: string | null;
   cardArtworkUrl: string | null;
+  pokemonTypes: string[] | null;
   price: { low: number | null; mid: number | null; high: number | null; market: number | null } | null;
 }
 
@@ -87,16 +89,18 @@ export const lookupCard = async (
     }
 
     if (cards.length === 0) {
-      return { pokemonTcgId: null, cardArtworkUrl: null, price: null };
+      return { pokemonTcgId: null, cardArtworkUrl: null, pokemonTypes: null, price: null };
     }
 
     const data = { data: cards };
 
     const card = data.data[0];
     const pokemonTcgId = card.id;
+    const cardArtworkUrl = card.images.large || card.images.small;
+    const pokemonTypes = card.types && card.types.length > 0 ? card.types : null;
     const cachedPrice = await getCachedPrice(pokemonTcgId);
     if (cachedPrice) {
-      return { pokemonTcgId, cardArtworkUrl: card.images.large || card.images.small, price: cachedPrice };
+      return { pokemonTcgId, cardArtworkUrl, pokemonTypes, price: cachedPrice };
     }
 
     const priceTypes = card.tcgplayer?.prices;
@@ -107,9 +111,9 @@ export const lookupCard = async (
 
     if (price) await cachePrice(pokemonTcgId, price);
 
-    return { pokemonTcgId, cardArtworkUrl: card.images.large || card.images.small, price };
+    return { pokemonTcgId, cardArtworkUrl, pokemonTypes, price };
   } catch (error) {
     console.error('Pokemon TCG API lookup failed:', error);
-    return { pokemonTcgId: null, cardArtworkUrl: null, price: null };
+    return { pokemonTcgId: null, cardArtworkUrl: null, pokemonTypes: null, price: null };
   }
 };

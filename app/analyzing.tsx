@@ -72,6 +72,13 @@ export default function AnalyzingScreen() {
       return;
     }
 
+    // Tabs.Screen keeps this component mounted between scans, so reset
+    // local progress state on each new imageUri to avoid the second scan
+    // resolving instantly with stale `navigated`/`backendDone`/`step`.
+    setStep(0);
+    setBackendDone(false);
+    navigated.current = false;
+
     const analyze = async () => {
       if (scanCount > 0 && scanCount % 3 === 0) {
         try {

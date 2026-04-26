@@ -25,6 +25,7 @@ export interface ScanResult {
   imageUrl: string;
   storagePath: string;
   cardArtworkUrl: string | null;
+  pokemonTypes: string[] | null;
 }
 
 export interface SavedCard extends ScanResult {
